@@ -29,11 +29,11 @@ def snapshots():
     """Commands for snapshots"""
 
 @snapshots.command('list')
-@click.command()
-@click.option('--project', default=None, help="Only snapshots for project (tag Project:<name>)")
+@click.option('--project', default=None,
+    help="Only snapshots for project (tag Project:<name>)")
 @click.option('--all', 'list_all', default=False, is_flag=True,
     help="List all snapshots for each volume, not just the most recent")
-def list_snapshots(project):
+def list_snapshots(project, list_all):
     "List EC2 snapshots"
 
     instances = filter_instances(project)
@@ -50,19 +50,17 @@ def list_snapshots(project):
                     s.start_time.strftime("%c")
                 )))
 
-                if s.state == 'completed' and not list_all:break
+                if s.state == 'completed' and not list_all: break
 
     return
-
 
 @cli.group('volumes')
 def volumes():
     """Commands for volumes"""
 
 @volumes.command('list')
-@click.command()
-@click.option('--project', default=None, help="Only volumes for project (tag Project:<name>)")
-
+@click.option('--project', default=None,
+    help="Only volumes for project (tag Project:<name>)")
 def list_volumes(project):
     "List EC2 volumes"
 
@@ -84,8 +82,10 @@ def list_volumes(project):
 def instances():
     """Commands for instances"""
 
-@instances.command('snapshot', help="Create snapshots of all volumes")
-@click.option('--project', default=None, help="Only instances for project (tag Project:<name>)")
+@instances.command('snapshot',
+    help="Create snapshots of all volumes")
+@click.option('--project', default=None,
+    help="Only instances for project (tag Project:<name>)")
 def create_snapshots(project):
     "Create snapshots for EC2 instances"
 
@@ -99,10 +99,10 @@ def create_snapshots(project):
 
         for v in i.volumes.all():
             if has_pending_snapshot(v):
-                print("Skipping {0}, snapshot already in progress.".format(v.id))
+                print("  Skipping {0}, snapshot already in progress".format(v.id))
                 continue
 
-            print("Creating snapshot of {0}".format(v.id))
+            print("  Creating snapshot of {0}".format(v.id))
             v.create_snapshot(Description="Created by SnapshotAlyzer 30000")
 
         print("Starting {0}...".format(i.id))
@@ -111,16 +111,17 @@ def create_snapshots(project):
         i.wait_until_running()
 
     print("Job's done!")
+
     return
 
 @instances.command('list')
-@click.command()
-@click.option('--project', default=None, help="Only instances for project (tag Project:<name>)")
-
+@click.option('--project', default=None,
+    help="Only instances for project (tag Project:<name>)")
 def list_instances(project):
     "List EC2 instances"
 
     instances = filter_instances(project)
+
     for i in instances:
         tags = { t['Key']: t['Value'] for t in i.tags or [] }
         print(', '.join((
@@ -129,18 +130,19 @@ def list_instances(project):
             i.placement['AvailabilityZone'],
             i.state['Name'],
             i.public_dns_name,
-            tags.get('Project','<no project>')
-        )))
+            tags.get('Project', '<no project>')
+            )))
+
     return
 
 @instances.command('stop')
 @click.option('--project', default=None,
-    help='Only instances for project')
-
+  help='Only instances for project')
 def stop_instances(project):
     "Stop EC2 instances"
 
     instances = filter_instances(project)
+
     for i in instances:
         print("Stopping {0}...".format(i.id))
         try:
@@ -153,12 +155,12 @@ def stop_instances(project):
 
 @instances.command('start')
 @click.option('--project', default=None,
-    help='Only instances for project')
-
+  help='Only instances for project')
 def start_instances(project):
     "Start EC2 instances"
 
     instances = filter_instances(project)
+
     for i in instances:
         print("Starting {0}...".format(i.id))
         try:
@@ -167,10 +169,7 @@ def start_instances(project):
             print(" Could not start {0}. ".format(i.id) + str(e))
             continue
 
-
     return
-
 
 if __name__ == '__main__':
     cli()
-    #list_instances()
