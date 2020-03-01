@@ -10,7 +10,7 @@ def filter_instances(project):
 
     if project:
         filters = [{'Name':'tag:Project', 'Values':[project]}]
-        instances = ec2.instances.filter(Filter=filters)
+        instances = ec2.instances.filter(Filters=filters)
     else:
         instances = ec2.instances.all()
 
@@ -121,7 +121,7 @@ def list_instances(project):
     "List EC2 instances"
 
     instances = filter_instances(project)
-    for i in ec2.instances.all():
+    for i in instances:
         tags = { t['Key']: t['Value'] for t in i.tags or [] }
         print(', '.join((
             i.id,
